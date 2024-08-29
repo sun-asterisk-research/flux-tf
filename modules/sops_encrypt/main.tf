@@ -17,12 +17,26 @@ module "sops_file" {
 locals {
   base_path = module.sops_config.config.base_path
 
+  encrypted_paths = distinct([
+    for f in module.sops_file.files : f.enc_path
+  ])
+
+  unencrypted_paths = distinct([
+    for f in module.sops_file.files : f.path
+  ])
+
+  # Map of current encrypted files with their sops info (path, enc_path, enc_type, recipients), first rule with matched path_regex wins
   encrypted_files = {
-    for i, f in module.sops_file.files : f.enc_path => f if fileexists(f.enc_path)
+    for enc_path in local.encrypted_paths : enc_path => [
+      for f in module.sops_file.files : f if f.enc_path == enc_path
+    ][0] if fileexists(enc_path)
   }
 
+  # Map of current unencrypted files with their sops info (path, enc_path, enc_type, recipients), first rule with matched path_regex wins
   unencrypted_files = {
-    for i, f in module.sops_file.files : f.path => f if fileexists(f.path)
+    for path in local.unencrypted_paths : path => [
+      for f in module.sops_file.files : f if f.path == path
+    ][0] if fileexists(path)
   }
 }
 
@@ -43,11 +57,11 @@ module "sops_recipients" {
 
 locals {
   missing_encrypted_files = {
-    for f in local.unencrypted_files : f.path => f if !can(lookup(module.decrypted_files, f.enc_path))
+    for f in local.unencrypted_files : f.path => f if !can(module.decrypted_files[f.enc_path])
   }
 
   current_encrypted_files = {
-    for f in local.unencrypted_files : f.path => f if can(lookup(module.decrypted_files, f.enc_path))
+    for f in local.unencrypted_files : f.path => f if can(module.decrypted_files[f.enc_path])
   }
 
   # Filter out those that failed to decrypt
@@ -55,7 +69,7 @@ locals {
     for f in local.current_encrypted_files : f.path => f if module.decrypted_files[f.enc_path].content != ""
   }
 
-  recipients_change_files = {
+  recipients_changed_files = {
     for f in local.relevant_encrypted_files : f.path => f if(
       anytrue([
         for recipient_type in ["age", "azure_kv", "gcp_kms", "hc_vault", "kms", "pgp"]
@@ -71,7 +85,7 @@ locals {
     )
   }
 
-  files_to_encrypt = merge(local.missing_encrypted_files, local.changed_files, local.recipients_change_files)
+  files_to_encrypt = merge(local.missing_encrypted_files, local.changed_files, local.recipients_changed_files)
 }
 
 module "encrypted_files" {
