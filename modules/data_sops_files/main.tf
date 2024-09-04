@@ -38,7 +38,7 @@ locals {
           "yaml" = "yaml"
           "yml"  = "yaml"
           "json" = "json"
-        }[replace(path, "/.*\\.([\\w]+)$/", "$1")], "raw")
+        }[replace(path, "/.*\\.([\\w]+)$/", "$1")], "binary")
         recipients = matched.recipients
       }
     ]

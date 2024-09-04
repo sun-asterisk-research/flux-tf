@@ -11,8 +11,8 @@ variable "input_type" {
   default  = null
   nullable = true
   validation {
-    condition     = var.input_type == null || can(index(["json", "yaml", "raw"], var.input_type))
-    error_message = "Input type must be either 'json', 'yaml' or 'raw'"
+    condition     = var.input_type == null || can(index(["json", "yaml", "binary"], var.input_type))
+    error_message = "Input type must be either 'json', 'yaml' or 'binary'"
   }
 }
 
@@ -25,7 +25,7 @@ locals {
     "yaml" = "yaml"
     "yml"  = "yaml"
     "json" = "json"
-  }[replace(var.filename, "/.*\\.([\\w]+)$/", "$1")], "raw")
+  }[replace(var.filename, "/.*\\.([\\w]+)$/", "$1")], "binary")
 
   content = (local.input_type == "yaml"
     ? yamldecode(data.local_file.encrypted_file.content)

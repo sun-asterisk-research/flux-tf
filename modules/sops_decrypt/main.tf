@@ -17,8 +17,14 @@ module "sops_file" {
 locals {
   base_path = module.sops_config.config.base_path
 
+  encrypted_paths = distinct([
+    for f in module.sops_file.files : f.enc_path
+  ])
+
   encrypted_files = {
-    for f in module.sops_file.files : f.enc_path => f if fileexists(f.enc_path)
+    for enc_path in local.encrypted_paths : enc_path => [
+      for f in module.sops_file.files : f if f.enc_path == enc_path
+    ][0] if fileexists(enc_path)
   }
 }
 
@@ -34,8 +40,8 @@ locals {
     for p, f in module.decrypted_files : p => {
       path     = local.encrypted_files[p].path
       enc_path = local.encrypted_files[p].enc_path
-      content  = f.content
-    } if f.content != ""
+      content  = base64decode(f.content_base64)
+    } if f.is_valid
   }
 }
 
@@ -43,7 +49,7 @@ resource "local_sensitive_file" "decrypted_files" {
   for_each = local.final_decrypted_files
 
   filename             = each.value.path
-  content              = format("%s\n", each.value.content)
+  content              = each.value.content
   directory_permission = "0700"
   file_permission      = "0600"
 }

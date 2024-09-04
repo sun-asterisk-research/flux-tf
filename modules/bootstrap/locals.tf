@@ -2,7 +2,7 @@ data "external" "git_ref" {
   program = [
     "sh",
     "-c",
-    <<-EOF
+    <<-EOT
     git_ref="$(git symbolic-ref -q HEAD)"
     git_upstream="$(git for-each-ref --format='%(upstream:short)' "$git_ref")"
     git_remote="$(echo "$git_upstream" | cut -d/ -f1)"
@@ -14,7 +14,7 @@ data "external" "git_ref" {
     fi
 
     jq -n --arg branch "$git_branch" --arg remote "$git_remote" --arg remote_url "$git_remote_url" '{branch: $branch, remote: $remote, remote_url: $remote_url}'
-    EOF
+    EOT
   ]
 }
 
