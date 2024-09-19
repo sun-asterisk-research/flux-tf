@@ -29,8 +29,7 @@ variable "git_protocol" {
 variable "git_branch" {
   description = "Git branch to bootstrap"
   type        = string
-  default     = null
-  nullable    = true
+  default     = "main"
 }
 
 variable "git_deploy_key" {

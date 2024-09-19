@@ -1,5 +1,5 @@
 data "external" "git_ref" {
-  program = [
+  program = var.git_url == null ? [
     "sh",
     "-c",
     <<-EOT
@@ -15,11 +15,19 @@ data "external" "git_ref" {
 
     jq -n --arg branch "$git_branch" --arg remote "$git_remote" --arg remote_url "$git_remote_url" '{branch: $branch, remote: $remote, remote_url: $remote_url}'
     EOT
+  ] : [
+    "sh",
+    "-c",
+    <<-EOT
+    echo '{"remote_url":"${var.git_url}", "branch":"${var.git_branch}"}'
+    EOT
   ]
+
+  working_dir = path.root
 }
 
 locals {
-  git_url = var.git_url != null ? var.git_url : data.external.git_ref.result.remote_url
+  git_url = data.external.git_ref.result.remote_url
 
   # Convert SSH URL to HTTP URL
   git_url_normalized = !can(regex("^https?://", local.git_url)) ? replace(replace(local.git_url, ":", "/"), "/^.+@/", "https://") : local.git_url
@@ -35,7 +43,7 @@ locals {
 
   git_owner  = element(local.git_url_parts, 1)
   git_repo   = element(local.git_url_parts, 2)
-  git_branch = var.git_branch != null ? var.git_branch : data.external.git_ref.result.branch
+  git_branch = data.external.git_ref.result.branch
 
   git_ssh_url  = "ssh://git@${local.scm_domain}/${local.git_owner}/${local.git_repo}.git"
   git_http_url = "https://git@${local.scm_domain}/${local.git_owner}/${local.git_repo}.git"
