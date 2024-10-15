@@ -20,8 +20,8 @@ variable "input_type" {
   nullable = true
 
   validation {
-    condition     = var.input_type == null || can(index(["json", "yaml", "binary"], var.input_type))
-    error_message = "Input type must be either 'json', 'yaml' or 'binary'"
+    condition     = var.input_type == null || can(index(["json", "yaml", "env", "ini", "binary"], var.input_type))
+    error_message = "Input type must be either 'json', 'yaml', 'env', 'ini' or 'binary'"
   }
 }
 
@@ -31,25 +31,29 @@ variable "output_type" {
   nullable = true
 
   validation {
-    condition     = var.output_type == null || can(index(["json", "yaml", "binary"], var.output_type))
-    error_message = "Input type must be either 'json', 'yaml' or 'binary'"
+    condition     = var.output_type == null || can(index(["json", "yaml", "env", "ini", "binary"], var.output_type))
+    error_message = "Input type must be either 'json', 'yaml', 'env', 'ini' or 'binary'"
   }
 }
 
 locals {
-  input  = var.content != null ? var.content : file(var.filename)
+  input    = var.content != null ? var.content : file(var.filename)
   file_ext = var.filename != null ? replace(var.filename, "/.*\\.([\\w]+)$/", "$1") : null
 
   input_type = var.input_type != null ? var.input_type : try({
     "yaml" = "yaml"
     "yml"  = "yaml"
     "json" = "json"
+    "env"  = "env"
+    "ini"  = "ini"
   }[local.file_ext], "binary")
 
   output_type = var.output_type != null ? var.output_type : try({
     "yaml" = "yaml"
     "yml"  = "yaml"
     "json" = "json"
+    "env"  = "env"
+    "ini"  = "ini"
   }[local.file_ext], "binary")
 }
 
