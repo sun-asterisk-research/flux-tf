@@ -48,6 +48,8 @@ locals {
   git_ssh_url  = "ssh://git@${local.scm_domain}/${local.git_owner}/${local.git_repo}.git"
   git_http_url = "https://git@${local.scm_domain}/${local.git_owner}/${local.git_repo}.git"
 
+  git_private_key_pem = var.git_ssh_private_key_pem != null ? var.git_ssh_private_key_pem : tls_private_key.flux[0].private_key_pem
+
   cluster_path          = "clusters/${var.cluster}"
   flux_components_extra = var.flux_enable_image_automation ? ["image-reflector-controller", "image-automation-controller"] : []
 

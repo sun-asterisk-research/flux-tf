@@ -38,6 +38,13 @@ variable "git_deploy_key" {
   default     = null
 }
 
+variable "git_ssh_private_key_pem" {
+  description = "SSH private key to use for authentication"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
 variable "github_token" {
   description = "GitHub token to use for authentication"
   type        = string

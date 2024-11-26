@@ -36,7 +36,7 @@ provider "flux" {
 
     ssh = {
       username    = "git"
-      private_key = tls_private_key.flux.private_key_pem
+      private_key = local.git_private_key_pem
     }
   }
 }

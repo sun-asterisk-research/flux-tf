@@ -1,22 +1,25 @@
 resource "tls_private_key" "flux" {
+  count       = var.git_protocol == "ssh" && var.git_ssh_private_key_pem == null ? 1 : 0
   algorithm   = "ECDSA"
   ecdsa_curve = "P256"
 }
 
 resource "github_repository_deploy_key" "this" {
-  count      = var.git_protocol == "ssh" && local.scm_provider == "github" ? 1 : 0
+  count      = length(tls_private_key.flux) > 0 && local.scm_provider == "github" ? 1 : 0
+  depends_on = [tls_private_key.flux]
   title      = "Flux CD ${var.cluster}"
   repository = local.git_repo
-  key        = tls_private_key.flux.public_key_openssh
+  key        = tls_private_key.flux[0].public_key_openssh
   read_only  = false
 }
 
 resource "gitlab_deploy_key" "this" {
-  count    = var.git_protocol == "ssh" && local.scm_provider == "gitlab" ? 1 : 0
-  title    = "Flux CD ${var.cluster}"
-  project  = "${local.git_owner}/${local.git_repo}"
-  key      = tls_private_key.flux.public_key_openssh
-  can_push = false
+  count      = length(tls_private_key.flux) > 0 && local.scm_provider == "gitlab" ? 1 : 0
+  depends_on = [tls_private_key.flux]
+  title      = "Flux CD ${var.cluster}"
+  project    = "${local.git_owner}/${local.git_repo}"
+  key        = tls_private_key.flux[0].public_key_openssh
+  can_push   = false
 }
 
 module "flux_ssh" {
@@ -45,7 +48,7 @@ module "flux_http" {
 }
 
 resource "null_resource" "git_pull" {
-  depends_on = [ module.flux_ssh, module.flux_http ]
+  depends_on = [module.flux_ssh, module.flux_http]
 
   provisioner "local-exec" {
     command = (
