@@ -46,15 +46,3 @@ module "flux_http" {
   components_extra = local.flux_components_extra
   namespace        = var.flux_namespace
 }
-
-resource "null_resource" "git_pull" {
-  depends_on = [module.flux_ssh, module.flux_http]
-
-  provisioner "local-exec" {
-    command = (
-      data.external.git_ref.result.remote != ""
-      && data.external.git_ref.result.branch == local.git_branch
-      && data.external.git_ref.result.remote_url == local.git_url
-    ) ? "git pull ${data.external.git_ref.result.remote} ${data.external.git_ref.result.branch}" : "true"
-  }
-}
