@@ -67,8 +67,14 @@ data "external" "encrypted_files" {
     "sh",
     "-c",
     <<-EOT
-    output="$(jq -r '.input' | base64 --decode | sops --encrypt --age ${var.recipients.age} --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin)"
-    jq -n --arg output "$output" --arg status "$?" '{output: $output, status: $status}'
+    output="$(sed -n 's/.*"input"[ \t]*:[ \t]*"\([^"]*\)".*/\1/p' \
+      | base64 --decode  \
+      | sops --encrypt --age ${var.recipients.age} --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin
+    )"
+    status=$?
+    echo "$output" \
+      | base64 -w0 \
+      | awk -v status="$status" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
     EOT
   ]
 
@@ -78,7 +84,7 @@ data "external" "encrypted_files" {
 }
 
 output "content" {
-  value     = data.external.encrypted_files.result.output
+  value     = base64decode(data.external.encrypted_files.result.output)
   sensitive = true
 }
 

@@ -58,13 +58,19 @@ data "external" "decrypted_files" {
     "sh",
     "-c",
     <<-EOT
-    output="$(jq -r '.input' | sops --decrypt --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin | base64 -w0)"
-    jq -n --arg output "$output" --arg status "$?" '{output: $output, status: $status}'
+    output="$(sed -n 's/.*"input"[ \t]*:[ \t]*"\([^"]*\)".*/\1/p' \
+      | base64 --decode \
+      | sops --decrypt --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin \
+    )"
+    status=$?
+    echo "$output" \
+      | base64 -w0 \
+      | awk -v status="$?" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
     EOT
   ]
 
   query = {
-    input = local.input
+    input = base64encode(local.input)
   }
 }
 

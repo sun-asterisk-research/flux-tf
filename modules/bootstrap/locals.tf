@@ -13,7 +13,7 @@ data "external" "git_ref" {
       exit 1
     fi
 
-    jq -n --arg branch "$git_branch" --arg remote "$git_remote" --arg remote_url "$git_remote_url" '{branch: $branch, remote: $remote, remote_url: $remote_url}'
+    awk -v branch="$git_branch" -v remote="$git_remote" -v remote_url="$git_remote_url" 'BEGIN {print "{\"branch\": \"" branch "\", \"remote\": \"" remote "\", \"remote_url\": \"" remote_url "\"}"}'
     EOT
   ] : [
     "sh",
