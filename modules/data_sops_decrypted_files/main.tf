@@ -46,11 +46,7 @@ locals {
     "json" = "json"
   }[local.file_ext], "binary")
 
-  output_type = var.output_type != null ? var.output_type : try({
-    "yaml" = "yaml"
-    "yml"  = "yaml"
-    "json" = "json"
-  }[local.file_ext], "binary")
+  output_type = var.output_type != null ? var.output_type : local.input_type
 }
 
 data "external" "decrypted_files" {
@@ -58,12 +54,16 @@ data "external" "decrypted_files" {
     "sh",
     "-c",
     <<-EOT
-    output="$(sed -n 's/.*"input"[ \t]*:[ \t]*"\([^"]*\)".*/\1/p' \
+    result="$(sed -n 's/.*"input"[ \t]*:[ \t]*"\([^"]*\)".*/\1/p' \
       | base64 --decode \
       | sops --decrypt --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin \
     )"
     status=$?
-    echo "$output" \
+    if [ $status -ne 0 ]; then
+      exit $status
+    fi
+
+    echo "$result" \
       | base64 -w0 \
       | awk -v status="$?" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
     EOT
