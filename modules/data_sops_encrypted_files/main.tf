@@ -45,6 +45,26 @@ variable "recipients" {
   })
 }
 
+variable "encrypted_regex" {
+  type     = string
+  default  = ""
+}
+
+variable "unencrypted_regex" {
+  type     = string
+  default  = ""
+}
+
+variable "encrypted_suffix" {
+  type     = string
+  default  = ""
+}
+
+variable "unencrypted_suffix" {
+  type     = string
+  default  = ""
+}
+
 locals {
   input  = var.content_base64 != null ? var.content_base64 : filebase64(var.filename)
   file_ext = replace(var.filename, "/.*\\.([\\w]+)$/", "$1")
@@ -63,9 +83,43 @@ data "external" "encrypted_files" {
     "sh",
     "-c",
     <<-EOT
+    encrypt_flags='--indent 2 --input-type ${local.input_type} --output-type ${local.output_type}'
+
+    if [ -n "${var.recipients.age}" ]; then
+      encrypt_flags="$encrypt_flags --age ${var.recipients.age}"
+    fi
+
+    if [ -n "${var.recipients.gcp_kms}" ]; then
+      encrypt_flags="$encrypt_flags --gcp-kms ${var.recipients.gcp_kms}"
+    fi
+
+    if [ -n "${var.recipients.kms}" ]; then
+      encrypt_flags="$encrypt_flags --kms ${var.recipients.kms}"
+    fi
+
+    if [ -n "${var.recipients.pgp}" ]; then
+      encrypt_flags="$encrypt_flags --pgp ${var.recipients.pgp}"
+    fi
+
+    if [ -n "${var.encrypted_regex}" ]; then
+      encrypt_flags="$encrypt_flags --encrypted-regex ${var.encrypted_regex}"
+    fi
+
+    if [ -n "${var.unencrypted_regex}" ]; then
+      encrypt_flags="$encrypt_flags --unencrypted-regex ${var.unencrypted_regex}"
+    fi
+
+    if [ -n "${var.encrypted_suffix}" ]; then
+      encrypt_flags="$encrypt_flags --encrypted-suffix ${var.encrypted_suffix}"
+    fi
+
+    if [ -n "${var.unencrypted_suffix}" ]; then
+      encrypt_flags="$encrypt_flags --unencrypted-suffix ${var.unencrypted_suffix}"
+    fi
+
     result="$(sed -n 's/.*"input"[ \t]*:[ \t]*"\([^"]*\)".*/\1/p' \
       | base64 --decode  \
-      | sops --encrypt --age ${var.recipients.age} --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin
+      | sops --encrypt $encrypt_flags /dev/stdin
     )"
     status=$?
     if [ $status -ne 0 ]; then

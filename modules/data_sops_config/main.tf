@@ -12,9 +12,8 @@ locals {
 
   base_path = try("${local.dirname}/${trimprefix(local.config_yaml.base_path, "/")}", local.dirname)
   paths = [
-    for p in local.config_yaml.paths : {
-      path_regex = p.path_regex
+    for p in local.config_yaml.paths : merge(p, {
       recipients = flatten(p.recipients) # Flatten recipients so anchors can be used
-    }
+    })
   ]
 }

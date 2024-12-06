@@ -96,9 +96,13 @@ module "encrypted_files" {
   for_each = local.files_to_encrypt
   source   = "../data_sops_encrypted_files"
 
-  filename   = each.value.path
-  input_type = each.value.enc_type
-  recipients = each.value.recipients
+  filename           = each.value.path
+  input_type         = each.value.enc_type
+  recipients         = each.value.recipients
+  encrypted_regex    = each.value.encrypted_regex
+  unencrypted_regex  = each.value.unencrypted_regex
+  encrypted_suffix   = each.value.encrypted_suffix
+  unencrypted_suffix = each.value.unencrypted_suffix
 }
 
 # Decrypt changed files to double check the unencrypted data
