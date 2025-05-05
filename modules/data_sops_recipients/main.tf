@@ -34,22 +34,22 @@ locals {
 
   recipients = {
     age = join(",", [
-      for age in coalesce(local.content.sops.age, []) : age.recipient
+      for age in coalesce(try(local.content.sops.age, []), []) : age.recipient
     ])
     azure_kv = join(",", [
-      for azure_kv in coalesce(local.content.sops.azure_kv, []) : "${azure_kv.vault_url}/${azure_kv.name}/${azure_kv.version}"
+      for azure_kv in coalesce(try(local.content.sops.azure_kv, []), []) : "${azure_kv.vault_url}/${azure_kv.name}/${azure_kv.version}"
     ])
     gcp_kms = join(",", [
-      for gcp_kms in coalesce(local.content.sops.gcp_kms, []) : gcp_kms.resource_id
+      for gcp_kms in coalesce(try(local.content.sops.gcp_kms, []), []) : gcp_kms.resource_id
     ])
     hc_vault = join(",", [
-      for hc_vault in coalesce(local.content.sops.hc_vault, []) : "${hc_vault.vault_address}/v1/${hc_vault.engine_path}/${hc_vault.key_name}"
+      for hc_vault in coalesce(try(local.content.sops.hc_vault, []), []) : "${hc_vault.vault_address}/v1/${hc_vault.engine_path}/${hc_vault.key_name}"
     ])
     kms = join(",", [
-      for kms in coalesce(local.content.sops.kms, []) : kms.arn
+      for kms in coalesce(try(local.content.sops.kms, []), []) : kms.arn
     ])
     pgp = join(",", [
-      for pgp in coalesce(local.content.sops.pgp, []) : pgp.fp
+      for pgp in coalesce(try(local.content.sops.pgp, []), []) : pgp.fp
     ])
   }
 }
