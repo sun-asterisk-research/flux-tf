@@ -59,13 +59,13 @@ data "external" "decrypted_files" {
       | sops --decrypt --indent 2 --input-type ${local.input_type} --output-type ${local.output_type} /dev/stdin \
     )"
     status=$?
-    if [ $status -ne 0 ]; then
+    if [ $status -ne 0 ] && [ $status -ne 128 ]; then
       exit $status
     fi
 
     echo "$result" \
       | base64 -w0 \
-      | awk -v status="$?" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
+      | awk -v status="$status" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
     EOT
   ]
 
