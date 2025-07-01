@@ -1,5 +1,8 @@
 locals {
-  git_private_key = coalesce(var.git_ssh_private_key, tls_private_key.flux["generated"].private_key_pem)
+  git_private_key = (var.git_ssh_private_key != null ?
+    var.git_ssh_private_key :
+    (contains(keys(tls_private_key.flux), "generated") ? tls_private_key.flux["generated"].private_key_pem : null)
+  )
 }
 
 resource "tls_private_key" "flux" {
