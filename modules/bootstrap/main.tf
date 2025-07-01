@@ -1,7 +1,7 @@
 locals {
   git_private_key = (var.git_ssh_private_key != null ?
     var.git_ssh_private_key :
-    (contains(keys(tls_private_key.flux), "generated") ? tls_private_key.flux["generated"].private_key_pem : null)
+    (contains(keys(tls_private_key.flux), "generated") ? tls_private_key.flux["generated"].private_key_openssh : null)
   )
 }
 
@@ -12,7 +12,7 @@ resource "tls_private_key" "flux" {
 }
 
 data "tls_public_key" "flux" {
-  private_key_pem = local.git_private_key
+  private_key_openssh = local.git_private_key
 }
 
 resource "github_repository_deploy_key" "this" {
