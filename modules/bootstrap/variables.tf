@@ -79,8 +79,14 @@ variable "flux_version" {
 
 variable "flux_kustomize_patches" {
   description = "Kustomize patches to apply to Flux components"
-  type        = list(string)
-  default     = []
+  type = list(object({
+    target = object({
+      kind = string
+      name = string
+    })
+    patch = string
+  }))
+  default = []
 }
 
 variable "age_secret_name" {
