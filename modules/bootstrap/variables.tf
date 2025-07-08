@@ -54,6 +54,12 @@ variable "flux_operator_version" {
   default     = "0.14.0"
 }
 
+variable "flux_operator_helm_values" {
+  description = "Values to pass to the Flux Operator Helm chart"
+  type        = any
+  default     = {}
+}
+
 variable "flux_namespace" {
   description = "Namespace to install Flux in"
   type        = string

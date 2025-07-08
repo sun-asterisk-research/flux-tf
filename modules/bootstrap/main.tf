@@ -95,6 +95,10 @@ resource "helm_release" "flux_operator" {
   repository = "oci://ghcr.io/controlplaneio-fluxcd/charts"
   chart      = "flux-operator"
   version    = var.flux_operator_version
+
+  values = [
+    yamlencode(var.flux_operator_helm_values)
+  ]
 }
 
 resource "helm_release" "flux_instance" {
