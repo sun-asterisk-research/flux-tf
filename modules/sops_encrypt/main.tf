@@ -93,7 +93,7 @@ locals {
 }
 
 module "encrypted_files" {
-  for_each = local.files_to_encrypt
+  for_each = nonsensitive(local.files_to_encrypt)
   source   = "../data_sops_encrypted_files"
 
   filename           = each.value.path
@@ -107,7 +107,7 @@ module "encrypted_files" {
 
 # Decrypt changed files to double check the unencrypted data
 module "encrypted_files_decrypted" {
-  for_each = local.changed_files
+  for_each = nonsensitive(local.changed_files)
   source   = "../data_sops_decrypted_files"
 
   content     = module.encrypted_files[each.value.path].content

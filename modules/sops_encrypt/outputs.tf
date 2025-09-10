@@ -1,4 +1,5 @@
 output "files" {
+  sensitive = true
   value = [
     for f in local.all_encrypted_files : {
       path     = trimprefix(f.path, "${local.base_path}/")
