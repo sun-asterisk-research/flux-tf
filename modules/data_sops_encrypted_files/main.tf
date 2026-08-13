@@ -126,7 +126,7 @@ data "external" "encrypted_files" {
       exit $status
     fi
 
-    echo "$result" \
+    printf '%s\n' "$result" \
       | base64 -w0 \
       | awk -v status="$status" '{print "{\"output\": \"" $0 "\", \"status\": \"" status "\"}"}'
     EOT
