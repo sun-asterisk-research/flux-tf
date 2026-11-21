@@ -108,6 +108,7 @@ resource "helm_release" "flux_instance" {
   namespace  = var.flux_namespace
   repository = "oci://ghcr.io/controlplaneio-fluxcd/charts"
   chart      = "flux-instance"
+  version    = var.flux_instance_version
 
   values = [
     yamlencode({

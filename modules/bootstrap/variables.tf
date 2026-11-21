@@ -49,9 +49,15 @@ variable "gitlab_token" {
 }
 
 variable "flux_operator_version" {
-  description = "Version of Flux Operator to install"
+  description = "Version of the Flux Operator Helm chart to install"
   type        = string
-  default     = "0.14.0"
+  default     = "0.63.0"
+}
+
+variable "flux_instance_version" {
+  description = "Version of the Flux Instance Helm chart to install"
+  type        = string
+  default     = "0.63.0"
 }
 
 variable "flux_operator_helm_values" {
