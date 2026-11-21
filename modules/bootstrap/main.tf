@@ -33,7 +33,7 @@ resource "gitlab_deploy_key" "this" {
   can_push   = false
 }
 
-resource "kubernetes_namespace" "flux" {
+resource "kubernetes_namespace_v1" "flux" {
   metadata {
     name = var.flux_namespace
   }
@@ -51,8 +51,8 @@ resource "age_secret_key" "this" {
   for_each = nonsensitive(var.age_private_key) == null ? toset(["generated"]) : toset([])
 }
 
-resource "kubernetes_secret" "sops_age" {
-  depends_on = [kubernetes_namespace.flux, age_secret_key.this]
+resource "kubernetes_secret_v1" "sops_age" {
+  depends_on = [kubernetes_namespace_v1.flux, age_secret_key.this]
 
   metadata {
     name      = var.age_secret_name
@@ -67,8 +67,8 @@ resource "kubernetes_secret" "sops_age" {
   }
 }
 
-resource "kubernetes_secret" "flux_system" {
-  depends_on = [kubernetes_namespace.flux]
+resource "kubernetes_secret_v1" "flux_system" {
+  depends_on = [kubernetes_namespace_v1.flux]
 
   metadata {
     name      = "flux-system"
@@ -88,7 +88,7 @@ resource "kubernetes_secret" "flux_system" {
 }
 
 resource "helm_release" "flux_operator" {
-  depends_on = [kubernetes_namespace.flux]
+  depends_on = [kubernetes_namespace_v1.flux]
 
   name       = "flux-operator"
   namespace  = var.flux_namespace
@@ -102,7 +102,7 @@ resource "helm_release" "flux_operator" {
 }
 
 resource "helm_release" "flux_instance" {
-  depends_on = [helm_release.flux_operator, kubernetes_secret.flux_system, kubernetes_secret.sops_age]
+  depends_on = [helm_release.flux_operator, kubernetes_secret_v1.flux_system, kubernetes_secret_v1.sops_age]
 
   name       = "flux-instance"
   namespace  = var.flux_namespace
